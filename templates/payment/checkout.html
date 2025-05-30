@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - {{ title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="bg-dark text-white p-5 rounded shadow text-center">
+                <h2 class="mb-4">Checkout</h2>
+                <p class="lead mb-3">You're purchasing:</p>
+                <h4 class="mb-3 text-success">{{ title }}</h4>
+                <p class="text-info mb-4 font-weight-bold">Price: ₹{{ amount }}</p>
+
+                <button class="btn custom-payment-btn btn-lg" id="proceedToPayment">
+                    🚀 Proceed to Payment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+    .custom-payment-btn {
+        background: linear-gradient(135deg, #28a745, #218838);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-radius: 10px;
+        transition: all 0.3s ease-in-out;
+    }
+    .custom-payment-btn:hover {
+        background: linear-gradient(135deg, #218838, #1e7e34);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+</style>
+
+<!-- Script -->
+<script>
+document.getElementById("proceedToPayment").addEventListener("click", function() {
+    fetch("/api/buy_video", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ video_id: {{ video_id }} })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.upi_link) {
+            window.location.href = "/payment?order_id=" + data.order_id + "&video_id=" + data.video_id;
+        } else {
+            alert("Payment initiation failed: " + (data.error || "Unknown error"));
+        }
+    })
+    .catch(error => console.error("Error:", error));
+});
+</script>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ skill.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Video List - Wider Column -->
+        <div class="col-md-7">
+            <h2 class="text-white mb-4">Skill Lessons</h2>
+            <ul class="list-group scrollable-video-list">
+                {% for video in skill.videos %}
+                    <li class="list-group-item bg-dark text-light lesson-item mb-3">
+                        <h5 class="text-white">PART {{ loop.index }}: {{ video.title }}</h5>
+                        {% if video.id in purchased_videos %}
+                            <!-- If Purchased, Show Video -->
+                            <div class="video-container mt-2">
+                                <video class="lesson-video w-100 rounded" controls>
+                                    <source src="{{ url_for('static', filename='videos/' + video.video_path) }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                        {% else %}
+                            <!-- If Not Purchased, Show Lock & Buy Button -->
+                            <div class="locked-video text-center p-3 bg-secondary rounded mt-2">
+                                <a href="{{ url_for('routes.checkout_video', video_id=video.id) }}" class="btn custom-buy-btn mt-2">
+                                    🔓 Buy & Unlock for ₹{{ video.amount }}
+                                </a>
+                            </div>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Skill Details - Smaller Column -->
+        <div class="col-md-5">
+            <div class="p-4 bg-dark text-white rounded">
+                <h2 class="mb-3">{{ skill.title }}</h2>
+                <p>{{ skill.description }}</p>
+                <p class="text-white"><u>Uploaded by: {{ skill.owner }}</u></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+    .lesson-item {
+        border: none;
+    }
+    .custom-buy-btn {
+        background: linear-gradient(135deg, #28a745, #218838);
+        color: white;
+        border: none;
+        padding: 8px 18px;
+        font-weight: bold;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+    }
+    .custom-buy-btn:hover {
+        background: linear-gradient(135deg, #218838, #1e7e34);
+        color: #fff;
+    }
+    .scrollable-video-list {
+        max-height: 75vh;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}

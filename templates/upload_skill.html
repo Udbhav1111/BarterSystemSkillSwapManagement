@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Course Videos{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center text-white mb-4">Upload Course Videos</h2>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card bg-dark text-white p-4 shadow">
+                <h4 class="text-white mb-3">Select an Existing Skill</h4>
+                <form id="selectSkillForm">
+                    <div class="mb-3">
+                        <label for="skillSelect" class="form-label">Choose Skill</label>
+                        <select class="form-select bg-secondary text-white border-0" id="skillSelect" required>
+                            <option value="">-- Select Skill --</option>
+                            {% for skill in skills %}
+                            <option value="{{ skill.id }}">{{ skill.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="button" id="selectSkillBtn" class="btn btn-primary">Select</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card bg-dark text-white p-4 shadow">
+                <h4 class="text-white mb-3">Or Upload a New Skill</h4>
+                <form id="skillForm">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Skill Title</label>
+                        <input type="text" class="form-control bg-secondary text-white border-0" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Skill Description</label>
+                        <textarea class="form-control bg-secondary text-white border-0" id="description" name="description" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Create Skill</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="videoUploadSection" class="card bg-dark text-white p-4 shadow mt-5 mb-5" style="display: none;">
+        <h4 class="text-white mb-4">Upload Course Videos</h4>
+        <form id="videoForm">
+            <input type="hidden" id="skillId" name="skill_id">
+
+            <div class="mb-3">
+                <label for="videoTitle" class="form-label">Video Title</label>
+                <input type="text" class="form-control bg-secondary text-white border-0" id="videoTitle" name="title" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="videoAmount" class="form-label">Price (₹)</label>
+                <input type="number" class="form-control bg-secondary text-white border-0" id="videoAmount" name="amount" step="0.01" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="videoFile" class="form-label">Select Video File</label>
+                <input type="file" class="form-control bg-secondary text-white border-0" id="videoFile" name="video" accept="video/*" required>
+            </div>
+
+            <button type="submit" class="btn btn-success">Upload Video</button>
+        </form>
+
+        <div id="videoList" class="mt-4"></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const skillForm = document.getElementById("skillForm");
+    const videoForm = document.getElementById("videoForm");
+    const videoSection = document.getElementById("videoUploadSection");
+    const videoList = document.getElementById("videoList");
+    const selectSkillBtn = document.getElementById("selectSkillBtn");
+
+    if (skillForm) {
+        skillForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+            const formData = new FormData(skillForm);
+            fetch("/api/upload_skill", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.skill_id) {
+                    alert("✅ Skill Created Successfully!");
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert(`❌ Error: ${data.error || "Failed to create skill."}`);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("⚠️ Failed to create skill. Please try again.");
+            });
+        });
+    }
+
+    selectSkillBtn.addEventListener("click", function() {
+        const skillId = document.getElementById("skillSelect").value;
+        if (!skillId) {
+            alert("Please select a skill.");
+            return;
+        }
+        document.getElementById("skillId").value = skillId;
+        document.getElementById("videoUploadSection").style.display = "block";
+    });
+
+    if (videoForm) {
+        videoForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+            const submitBtn = videoForm.querySelector("button[type='submit']");
+            submitBtn.disabled = true;
+            const formData = new FormData(videoForm);
+
+            fetch("/api/upload_video", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                if (data.video_path) {
+                    alert("✅ Video Uploaded Successfully!");
+                    videoForm.reset();
+                    const newVid = document.createElement("p");
+                    newVid.innerHTML = `<b>${formData.get("title")}</b> (₹${formData.get("amount")}) - Uploaded ✅`;
+                    newVid.classList.add("text-white"); // Add white text class
+                    videoList.appendChild(newVid);
+                } else {
+                    alert(`❌ Error: ${data.error || "Upload failed."}`);
+                }
+            })
+            .catch(err => {
+                submitBtn.disabled = false;
+                console.error(err);
+                alert("⚠️ Upload failed. Please try again.");
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

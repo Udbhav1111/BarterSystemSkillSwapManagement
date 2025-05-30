@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}My Courses{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="text-center text-white mb-5">🎓 My Purchased Videos</h2>
+
+    {% if videos %}
+        <div class="row g-4">
+            {% for video in videos %}
+                <div class="col-md-4">
+                    <div class="card bg-dark text-white border-light shadow-lg h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ video.title }}</h5>
+                            <p class="card-text mb-1 text-secondary">From: <strong>{{ video.skill_title }}</strong></p>
+                            <p class="card-text text-muted">By {{ video.owner }}</p>
+                            <div class="mt-auto">
+                                <a href="{{ url_for('routes.skill_detail', skill_id=video.skill_id) }}" class="btn btn-outline-info w-100 fw-bold">▶️ Watch Now</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center text-muted">
+            <p class="fs-5">😢 You haven't purchased any videos yet.</p>
+            <a href="{{ url_for('routes.home') }}" class="btn btn-outline-light mt-3">Explore Skills</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

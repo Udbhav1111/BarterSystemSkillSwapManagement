@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Verification{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="text-center text-white">Payment Verification</h2>
+    
+    {% if payments %}
+        <div class="list-group">
+            {% for payment in payments %}
+                <div class="card shadow-sm p-3 my-3">
+                    <h5>Order ID: {{ payment.order_id }}</h5>
+                    <p><strong>Video:</strong> {{ payment.video_title }}</p>
+                    <p><strong>Amount:</strong> ₹{{ payment.amount }}</p>
+                    
+                    {% if payment.payment_proof %}
+                        <p><strong>Proof:</strong></p>
+                        <div class="proof-container text-center">
+                            <img src="{{ url_for('static', filename='payment_proofs/' + payment.payment_proof) }}" 
+                                alt="Payment Proof" class="img-fluid payment-proof" style="max-width: 300px;">
+                        </div>
+                    {% else %}
+                        <p class="text-danger">No payment proof uploaded.</p>
+                    {% endif %}
+                    
+                    <div class="mt-3 text-center">
+                        <button class="btn btn-success approve-btn" data-order="{{ payment.order_id }}">Approve</button>
+                        <button class="btn btn-danger reject-btn" data-order="{{ payment.order_id }}">Reject</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center text-white">No pending payments.</p>
+    {% endif %}
+</div>
+
+<script>
+document.querySelectorAll(".approve-btn, .reject-btn").forEach(button => {
+    button.addEventListener("click", function() {
+        let orderId = this.getAttribute("data-order");
+        let status = this.classList.contains("btn-success") ? "approved" : "rejected";
+
+        fetch("/api/approve_payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ order_id: orderId, status: status })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            location.reload();
+        });
+    });
+});
+</script>
+{% endblock %}

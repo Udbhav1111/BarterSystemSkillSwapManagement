@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Skill Share{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero text-center text-white d-flex align-items-center justify-content-center position-relative" 
+    style="background: url('{{ url_for('static', filename='images/bg-img.jpg') }}') center/cover no-repeat; height: 70vh; position: relative;">
+    
+    <!-- Dark Overlay -->
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background-color: rgba(0, 0, 0, 0.6); z-index: 1;"></div>
+    
+    <!-- Content on top -->
+    <div class="container position-relative" style="z-index: 2;">
+        <h1 class="display-3 fw-bold">Skill Swap: Learn & Grow</h1>
+        <p class="lead">Discover skills, trade knowledge, and enhance your expertise</p>
+        <a href="{{ url_for('routes.register_page') }}" class="btn btn-primary btn-lg me-2">Join Now</a>
+        <a href="{{ url_for('routes.skills_page') }}" class="btn btn-outline-light btn-lg">Explore Skills</a>
+    </div>
+</section>
+
+<!-- Featured Skills Section -->
+<section class="container my-5">
+    <h2 class="text-center mb-4 fw-bold text-white">Popular Skills</h2>
+    <div class="position-relative">
+        <button class="scroll-btn left" onclick="scrollSkills(-1)">&#10094;</button>
+        <div class="scroll-container">
+            {% for skill in skills %}
+            <div class="card skill-card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title fw-semibold">
+                        {{ skill.name[:20] }}{% if skill.name|length > 20 %}...{% endif %}
+                    </h5>
+                    <p class="card-text text-muted">By {{ skill.owner }}</p>
+                    <a href="{{ url_for('routes.skill_detail', skill_id=skill.id) }}" class="btn btn-primary btn-sm">View Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <button class="scroll-btn right" onclick="scrollSkills(1)">&#10095;</button>
+    </div>
+</section>
+
+<!-- Why Choose Us Section -->
+<section class="container my-5 text-center text-white">
+    <h2 class="fw-bold text-white">Why Join Skill Swap?</h2>
+    <div class="row mt-4 align-items-stretch">
+        <div class="col-md-4 mb-4">
+            <div class="icon-box p-4 shadow rounded h-100">
+                <i class="bi bi-lightbulb display-4 text-primary"></i>
+                <h4 class="mt-3 text-black">Barter Learning System</h4>
+                <p class="text-muted">Exchange skills, not cash. SkillSwap lets you swap your expertise with others—offering one skill in return for another. It’s a win-win for learners who love collaboration and community-powered growth.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="icon-box p-4 shadow rounded h-100">
+                <i class="bi bi-people display-4 text-success"></i>
+                <h4 class="mt-3 text-black">Invest in your growth.</h4>
+                <p class="text-muted">Prefer direct access? Purchase skill courses from top creators with a simple payment system. No waiting, no swapping—just instant learning from the best.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="icon-box p-4 shadow rounded h-100">
+                <i class="bi bi-bar-chart display-4 text-danger"></i>
+                <h4 class="mt-3 text-black">Only pay for what you learn.</h4>
+                <p class="text-muted">Each course is divided into bite-sized lectures with individual pricing. Pick and choose what you need—learn smarter without paying for the whole course.</p>
+            </div>
+        </div>
+    </div>
+    
+</section>
+
+
+<script>
+    function scrollSkills(direction) {
+        const container = document.querySelector('.scroll-container');
+        container.scrollBy({ left: direction * 300, behavior: 'smooth' });
+    }
+</script>
+
+<style>
+    .scroll-container {
+        display: flex;
+        overflow-x: auto;
+        
+        scroll-behavior: smooth;
+        gap: 20px;
+        padding: 10px;
+        padding-left: 57px;
+        padding-right: 57px;
+        white-space: nowrap;
+    }
+    .scroll-container {
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;  /* Firefox */
+        max-height: 100%;       /* Ensures no vertical scroll */
+    }
+
+    .scroll-container::-webkit-scrollbar {
+        display: none;          /* Chrome, Safari, Edge */
+    }
+    .skill-card {
+        flex: 0 0 250px;
+        transition: transform 0.3s ease-in-out;
+    }
+    
+    .skill-card:hover {
+        transform: scale(1.05);
+    }
+
+    .scroll-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        font-size: 20px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .scroll-btn.left {
+        left: 0;
+    }
+
+    .scroll-btn.right {
+        right: 0;
+    }
+
+    .scroll-btn:hover {
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .icon-box {
+        border-radius: 10px;
+        background: #fff;
+        transition: 0.3s;
+    }
+
+    .icon-box:hover {
+        transform: translateY(-5px);
+    }
+
+    .testimonial {
+        background: white;
+        border-left: 4px solid #007bff;
+    }
+</style>
+
+{% endblock %}

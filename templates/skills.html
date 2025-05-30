@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Skills{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="text-center mb-4 text-white">Explore Skills</h2>
+    <div class="row">
+        {% for skill in skills %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <video class="card-img-top" preload="metadata" style="pointer-events: none;">
+                    <source src="{{ url_for('static', filename=skill.video_path) }}" type="video/mp4">
+                </video>
+                <div class="card-body">
+                    <h5 class="card-title">{{ skill.title }}</h5>
+                    <p class="card-text">{{ skill.description }}</p>
+                    <!-- <p class="text-primary font-weight-bold">Price: ₹{{ skill.amount }}</p> -->
+                    <p class="text-muted">Uploaded by: {{ skill.owner }}</p>
+                    <a href="{{ url_for('routes.skill_detail', skill_id=skill.id) }}" class="btn btn-success">View Now</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

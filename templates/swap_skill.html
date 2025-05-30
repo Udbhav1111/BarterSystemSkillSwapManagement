@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center text-white mb-4">🔄 Skill Swap Portal</h2>
+
+    <!-- Swap Request Form -->
+    <div class="card bg-dark text-white border-light shadow-lg mb-4">
+        <div class="card-header  text-white fw-bold">Request a Skill Swap</div>
+        <div class="card-body">
+            <form id="swapRequestForm">
+                <div class="mb-3">
+                    <label for="requestedSkill" class="form-label">Skill You Want</label>
+                    <select id="requestedSkill" class="form-select bg-dark text-white border-light" required>
+                        <option value="" disabled selected>Select a skill</option>
+                        {% for skill in other_skills %}
+                            <option value="{{ skill.id }}">{{ skill.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="offeredSkill" class="form-label">Skill You Offer</label>
+                    <select id="offeredSkill" class="form-select bg-dark text-white border-light" required>
+                        <option value="" disabled selected>Select a skill</option>
+                        {% for skill in user_skills %}
+                            <option value="{{ skill.id }}">{{ skill.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success w-100 fw-bold">🔁 Request Swap</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pending Swap Requests -->
+    {% if pending_swaps %}
+    <div class="card bg-dark text-white border-light shadow-lg mt-4">
+        <div class="card-header bg-warning text-dark fw-bold">Pending Swap Requests</div>
+        <div class="card-body p-0">
+            <ul class="list-group list-group-flush">
+                {% for swap in pending_swaps %}
+                <li class="list-group-item bg-dark text-white border-secondary">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <strong>{{ swap["requester_name"] }}</strong> offered 
+                            <span class="text-info">{{ swap["offered_skill"] }}</span>
+                            for 
+                            <span class="text-success">{{ swap["requested_skill"] }}</span>
+                        </div>
+
+                        <!-- Only show buttons if status is pending AND user is the owner -->
+                        
+                        {% if swap['status'] == 'pending' and swap['owner_id'] == session['user_id'] %}
+                            <div class="mt-2 mt-md-0">
+                                <button class="btn btn-success btn-sm me-2" onclick="updateSwap({{ swap['id'] }}, 'accept')">Accept</button>
+                                <button class="btn btn-danger btn-sm" onclick="updateSwap({{ swap['id'] }}, 'reject')">Reject</button>
+                            </div>
+                        {% else %}
+                        <!-- Show status badge to all others -->
+                        <span class="badge 
+                            {% if swap['status'] == 'accepted' %} bg-success 
+                            {% elif swap['status'] == 'denied' %} bg-danger 
+                            {% else %} bg-warning text-dark {% endif %}">
+                            {{ swap["status"]|capitalize }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        fetchPendingSwaps();
+    });
+
+    function fetchPendingSwaps() {
+        fetch("/api/pending_swaps")
+            .then(response => response.json())
+            .then(data => {
+                const list = document.getElementById("pendingSwaps");
+                list.innerHTML = "";
+                if (data.length === 0) {
+                    list.innerHTML = `<li class="list-group-item text-center text-muted bg-dark text-white">No pending requests</li>`;
+                }
+                data.forEach(swap => {
+                    let li = document.createElement("li");
+                    li.className = "list-group-item bg-dark text-white d-flex justify-content-between align-items-center";
+                    li.innerHTML = `
+                        <div>
+                            <span class="badge bg-info text-dark p-2">${swap.requester_name}</span> 
+                            wants <strong class="text-warning">${swap.requested_skill}</strong> 
+                            in exchange for <strong class="text-success">${swap.offered_skill}</strong>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-success me-2" onclick="updateSwap(${swap.swap_id}, 'accept')">✅ Accept</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="updateSwap(${swap.swap_id}, 'reject')">❌ Reject</button>
+                        </div>`;
+                    list.appendChild(li);
+                });
+            });
+    }
+
+    document.getElementById("swapRequestForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+        const requestedSkill = document.getElementById("requestedSkill").value;
+        const offeredSkill = document.getElementById("offeredSkill").value;
+        
+        fetch("/api/request_swap", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ requested_skill_id: requestedSkill, offered_skill_id: offeredSkill })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || data.error);
+            fetchPendingSwaps();
+        });
+    });
+
+    function updateSwap(swapId, action) {
+        fetch("/api/update_swap", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ swap_id: swapId, action: action })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || data.error);
+            fetchPendingSwaps();
+        });
+    }
+</script>
+{% endblock %}

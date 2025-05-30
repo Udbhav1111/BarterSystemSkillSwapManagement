@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment - {{ video_title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card bg-dark text-white shadow-lg p-4 rounded">
+                <h2 class="text-center mb-3">Complete Your Payment</h2>
+                <p class="text-center text-warning">Order ID: <strong>{{ order_id }}</strong></p>
+                
+                <div class="text-center">
+                    <h4 class="text-success">{{ video_title }}</h4>
+                    <p class="text-info font-weight-bold">Price: ₹{{ amount }}</p>
+                </div>
+
+                <div class="text-center my-4">
+                    <img id="qr" src="{{ qr_path }}" alt="Scan QR to Pay"
+                         class="img-fluid rounded shadow-sm" style="max-width: 300px;">
+                    <p class="mt-2 text-white-50">Scan this QR code with any UPI app to complete your payment.</p>
+                </div>
+                
+                <!-- Payment Proof Upload -->
+                <form id="paymentProofForm" class="mt-4" enctype="multipart/form-data">
+                    <label for="payment_proof" class="form-label"><i class="fas fa-upload"></i> Upload Payment Proof:</label>
+                    <input type="file" id="payment_proof" name="payment_proof" class="form-control bg-light text-dark" required>
+                    
+                    <button type="submit" class="btn custom-btn w-100 mt-3">
+                        ✅ Submit Payment Proof
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+    .custom-btn {
+        background: linear-gradient(135deg, #28a745, #218838);
+        color: white;
+        font-size: 1.1rem;
+        font-weight: bold;
+        padding: 12px 30px;
+        border-radius: 8px;
+        border: none;
+        transition: 0.3s ease-in-out;
+    }
+    .custom-btn:hover {
+        background: linear-gradient(135deg, #218838, #1e7e34);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+</style>
+
+<!-- Script -->
+<script>
+document.getElementById("paymentProofForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+    
+    let button = document.querySelector(".custom-btn");
+    button.innerHTML = "⏳ Uploading...";
+    button.disabled = true;
+
+    let formData = new FormData();
+    formData.append("payment_proof", document.getElementById("payment_proof").files[0]);
+    formData.append("order_id", "{{ order_id }}");
+    
+    fetch("/api/verify_payment", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert("✅ Payment proof submitted successfully!");
+            window.location.href = "{{ url_for('routes.home') }}";
+        } else {
+            alert("⚠️ Error: " + data.error);
+        }
+    })
+    .finally(() => {
+        button.innerHTML = "✅ Submit Payment Proof";
+        button.disabled = false;
+    });
+});
+</script>
+{% endblock %}
